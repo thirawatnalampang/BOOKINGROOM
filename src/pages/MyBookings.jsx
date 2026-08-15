@@ -24,10 +24,17 @@ function MyBookings() {
 
       const user = JSON.parse(savedUser);
 
-      const response = await fetch(
-        `http://localhost:5000/api/bookings/my/${user.id}`
-      );
+      const userId = user.user_id ?? user.id;
 
+if (!userId) {
+  console.error("ไม่พบ User ID:", user);
+  setBookings([]);
+  return;
+}
+
+const response = await fetch(
+  `http://localhost:5000/api/bookings/my/${userId}`
+);
       if (!response.ok) {
         throw new Error("ไม่สามารถดึงข้อมูลการจองได้");
       }

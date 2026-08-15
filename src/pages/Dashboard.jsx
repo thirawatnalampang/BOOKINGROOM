@@ -29,23 +29,36 @@ function Dashboard() {
   const isAdmin =
     currentUser?.role === "admin";
 
+  // รองรับทั้ง user_id และ id
+  const currentUserId =
+    currentUser?.user_id ??
+    currentUser?.id ??
+    null;
+
   // =====================================================
   // โหลดข้อมูล Dashboard
+  //
+  // IMPORTANT:
+  // ดึง bookings ทั้งหมด เพราะ Dashboard
+  // "การจองวันนี้" ต้องเห็นเหมือนกันทุกคน
   // =====================================================
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
 
-        const [roomsResponse, bookingsResponse] =
-          await Promise.all([
-            fetch(
-              "http://localhost:5000/api/rooms"
-            ),
-            fetch(
-              "http://localhost:5000/api/bookings"
-            ),
-          ]);
+        const [
+          roomsResponse,
+          bookingsResponse,
+        ] = await Promise.all([
+          fetch(
+            "http://localhost:5000/api/rooms"
+          ),
+
+          fetch(
+            "http://localhost:5000/api/bookings"
+          ),
+        ]);
 
         if (!roomsResponse.ok) {
           throw new Error(
@@ -107,29 +120,45 @@ function Dashboard() {
 
   // =====================================================
   // การจองวันนี้
+  //
+  // ทุกคนเห็นเหมือนกัน
   // =====================================================
-  const todayBookings = bookings.filter(
-    (booking) => {
+  const todayBookings = bookings
+    .filter((booking) => {
       if (!booking.start_date) {
         return false;
       }
 
-      const bookingDate =
+      const bookingDate = new Date(
+        booking.start_date
+      );
+
+      const formattedDate =
         new Intl.DateTimeFormat("en-CA", {
           timeZone: "Asia/Bangkok",
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
-        }).format(
-          new Date(booking.start_date)
-        );
+        }).format(bookingDate);
 
-      return bookingDate === todayString;
-    }
-  );
+      return (
+        formattedDate === todayString
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(
+        a.created_at || 0
+      ).getTime();
+
+      const dateB = new Date(
+        b.created_at || 0
+      ).getTime();
+
+      return dateB - dateA;
+    });
 
   // =====================================================
-  // Statistics
+  // ห้องว่างวันนี้
   // =====================================================
   const totalRooms = rooms.length;
 
@@ -138,11 +167,14 @@ function Dashboard() {
       todayBookings
         .filter(
           (booking) =>
-            booking.status === "approved" ||
-            booking.status === "pending"
+            booking.status ===
+              "approved" ||
+            booking.status ===
+              "pending"
         )
         .map(
-          (booking) => booking.room_id
+          (booking) =>
+            booking.room_id
         )
     ),
   ];
@@ -154,23 +186,66 @@ function Dashboard() {
   );
 
   // =====================================================
-  // Pending ทั้งหมด
+  // PENDING ทั้งระบบ
+  //
+  // ใช้กับ:
+  // Dashboard > Statistics > รออนุมัติ
+  //
+  // ทุก User เห็นเหมือนกัน
   // =====================================================
-  const pendingBookings =
+  const allPendingBookings =
     bookings.filter(
       (booking) =>
         booking.status === "pending"
     );
 
   // =====================================================
-  // Approved ทั้งหมด
+  // PENDING ของ User ปัจจุบัน
+  //
+  // ใช้กับ:
+  // Dashboard > เมนูด่วน > รออนุมัติ
+  //
+  // USER
+  // -> เห็นเฉพาะของตัวเอง
+  //
+  // ADMIN
+  // -> เห็นทั้งหมด
   // =====================================================
-  const approvedBookings =
+  const myPendingBookings =
     bookings.filter(
-      (booking) =>
-        booking.status === "approved"
+      (booking) => {
+        // ต้องเป็น pending ก่อน
+        if (
+          booking.status !==
+          "pending"
+        ) {
+          return false;
+        }
+
+        // Admin เห็นทั้งหมด
+        if (isAdmin) {
+          return true;
+        }
+
+        // User เห็นเฉพาะของตัวเอง
+        return (
+          String(
+            booking.user_id
+          ) ===
+          String(
+            currentUserId
+          )
+        );
+      }
     );
 
+  // =====================================================
+  // Statistics
+  //
+  // สำคัญ:
+  // รออนุมัติ = ALL pending
+  // ไม่ใช่ pending ของ User
+  // =====================================================
   const statistics = [
     {
       title: "ห้องประชุมทั้งหมด",
@@ -179,6 +254,7 @@ function Dashboard() {
       icon: "▣",
       className: "blue",
     },
+
     {
       title: "ห้องว่างวันนี้",
       value: availableRooms,
@@ -186,16 +262,20 @@ function Dashboard() {
       icon: "✓",
       className: "green",
     },
+
     {
       title: "รออนุมัติ",
-      value: pendingBookings.length,
+      value:
+        allPendingBookings.length,
       detail: "รายการ",
       icon: "◷",
       className: "orange",
     },
+
     {
       title: "การจองวันนี้",
-      value: todayBookings.length,
+      value:
+        todayBookings.length,
       detail: "รายการ",
       icon: "▤",
       className: "purple",
@@ -240,7 +320,8 @@ function Dashboard() {
           </h3>
 
           <p>
-            กำลังดึงข้อมูลห้องประชุมและรายการจอง...
+            กำลังดึงข้อมูลห้องประชุม
+            และรายการจอง...
           </p>
 
         </div>
@@ -293,45 +374,48 @@ function Dashboard() {
 
       {/* =================================================
           STATISTICS
+          ทุกคนเห็นเหมือนกัน
       ================================================= */}
       <div className="statistics">
 
-        {statistics.map((item) => (
-
-          <div
-            className="stat-card"
-            key={item.title}
-          >
+        {statistics.map(
+          (item) => (
 
             <div
-              className={`stat-icon ${item.className}`}
+              className="stat-card"
+              key={item.title}
             >
-              {item.icon}
-            </div>
 
-            <div className="stat-content">
+              <div
+                className={`stat-icon ${item.className}`}
+              >
+                {item.icon}
+              </div>
 
-              <span>
-                {item.title}
-              </span>
+              <div className="stat-content">
 
-              <div className="stat-number">
+                <span>
+                  {item.title}
+                </span>
 
-                <strong>
-                  {item.value}
-                </strong>
+                <div className="stat-number">
 
-                <small>
-                  {item.detail}
-                </small>
+                  <strong>
+                    {item.value}
+                  </strong>
+
+                  <small>
+                    {item.detail}
+                  </small>
+
+                </div>
 
               </div>
 
             </div>
 
-          </div>
-
-        ))}
+          )
+        )}
 
       </div>
 
@@ -341,8 +425,10 @@ function Dashboard() {
       ================================================= */}
       <div className="dashboard-grid">
 
+
         {/* =================================================
             TODAY BOOKINGS
+            ทุกคนเห็นเหมือนกัน
         ================================================= */}
         <section className="panel booking-panel">
 
@@ -358,10 +444,17 @@ function Dashboard() {
                 {today.toLocaleDateString(
                   "th-TH",
                   {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
+                    weekday:
+                      "long",
+
+                    day:
+                      "numeric",
+
+                    month:
+                      "long",
+
+                    year:
+                      "numeric",
                   }
                 )}
               </p>
@@ -369,9 +462,7 @@ function Dashboard() {
             </div>
 
 
-            {/* =================================================
-                ดูทั้งหมด ตาม Role
-            ================================================= */}
+            {/* ดูทั้งหมด */}
             <button
               type="button"
               className="link-button"
@@ -393,6 +484,7 @@ function Dashboard() {
 
           {/* =================================================
               TODAY SUMMARY
+              ทุกคนเห็นเหมือนกัน
           ================================================= */}
           <div className="booking-summary">
 
@@ -403,7 +495,9 @@ function Dashboard() {
               </span>
 
               <strong>
-                {todayBookings.length}
+                {
+                  todayBookings.length
+                }
               </strong>
 
             </div>
@@ -451,6 +545,7 @@ function Dashboard() {
 
           {/* =================================================
               BOOKING TABLE
+              ทุกคนเห็นเหมือนกัน
           ================================================= */}
           <div className="booking-table-wrapper">
 
@@ -487,7 +582,8 @@ function Dashboard() {
 
               <tbody>
 
-                {todayBookings.length === 0 ? (
+                {todayBookings.length ===
+                0 ? (
 
                   <tr>
 
@@ -539,8 +635,10 @@ function Dashboard() {
                             <div className="table-room">
 
                               <strong>
-                                {booking.room_name ||
-                                  `ห้องประชุม ${booking.room_id}`}
+                                {
+                                  booking.room_name ||
+                                  `ห้องประชุม ${booking.room_id}`
+                                }
                               </strong>
 
                               {booking.room_code && (
@@ -559,8 +657,10 @@ function Dashboard() {
                           {/* หัวข้อ */}
                           <td>
 
-                            {booking.title ||
-                              "-"}
+                            {
+                              booking.title ||
+                              "-"
+                            }
 
                           </td>
 
@@ -568,8 +668,10 @@ function Dashboard() {
                           {/* ผู้จอง */}
                           <td>
 
-                            {booking.booking_name ||
-                              "-"}
+                            {
+                              booking.booking_name ||
+                              "-"
+                            }
 
                           </td>
 
@@ -579,21 +681,25 @@ function Dashboard() {
 
                             <span className="booking-time">
 
-                              {booking.start_time
-                                ? booking.start_time.substring(
-                                    0,
-                                    5
-                                  )
-                                : "-"}
+                              {
+                                booking.start_time
+                                  ? booking.start_time.substring(
+                                      0,
+                                      5
+                                    )
+                                  : "-"
+                              }
 
                               {" - "}
 
-                              {booking.end_time
-                                ? booking.end_time.substring(
-                                    0,
-                                    5
-                                  )
-                                : "-"}
+                              {
+                                booking.end_time
+                                  ? booking.end_time.substring(
+                                      0,
+                                      5
+                                    )
+                                  : "-"
+                              }
 
                             </span>
 
@@ -609,9 +715,11 @@ function Dashboard() {
 
                               <span></span>
 
-                              {getStatusText(
-                                booking.status
-                              )}
+                              {
+                                getStatusText(
+                                  booking.status
+                                )
+                              }
 
                             </span>
 
@@ -726,6 +834,9 @@ function Dashboard() {
 
             {/* =================================================
                 รออนุมัติ
+                สำคัญที่สุด
+                USER = ของตัวเอง
+                ADMIN = ของทุกคน
             ================================================= */}
             <button
               type="button"
@@ -756,8 +867,19 @@ function Dashboard() {
 
               </div>
 
+              {/* =============================================
+                  จำนวน Pending ของคนนี้
+
+                  User:
+                  -> myPendingBookings
+
+                  Admin:
+                  -> pending ทั้งระบบ
+              ============================================= */}
               <span className="quick-count">
-                {pendingBookings.length}
+                {
+                  myPendingBookings.length
+                }
               </span>
 
               <span className="quick-arrow">
@@ -768,8 +890,8 @@ function Dashboard() {
 
 
             {/* =================================================
-                USER → รายการจองของฉัน
-                ADMIN → จัดการรายการจอง
+                USER -> รายการจองของฉัน
+                ADMIN -> จัดการรายการจอง
             ================================================= */}
             <button
               type="button"
@@ -807,7 +929,6 @@ function Dashboard() {
               </span>
 
             </button>
-
 
           </div>
 
