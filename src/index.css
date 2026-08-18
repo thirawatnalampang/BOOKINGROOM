@@ -5,15 +5,19 @@
 }
 
 :root {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #333;
-  background: #f5f5f7;
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  color: #1f2937;
+  background: #f6f7f9;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
-  background: #f5f5f7;
+  background: #f6f7f9;
 }
 
 button {
@@ -36,36 +40,56 @@ button {
 .sidebar {
   width: 245px;
   min-height: 100vh;
-  background: #57566f;
+
+  background: #263449;
+
   color: #fff;
+
   position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
+
   display: flex;
   flex-direction: column;
+
   z-index: 100;
 }
 
+/* =========================
+   SIDEBAR LOGO
+========================= */
+
 .sidebar-logo {
   height: 76px;
+
   display: flex;
   align-items: center;
+
   gap: 12px;
+
   padding: 0 20px;
-  background: #52516a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  background: #202c3d;
+
+  border-bottom: 1px solid #354255;
 }
 
 .logo-icon {
   width: 34px;
   height: 34px;
-  border: 2px solid #fff;
-  border-radius: 50%;
+
+  border: 2px solid #dbe3ec;
+
+  border-radius: 7px;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
   font-size: 20px;
+
+  color: #ffffff;
 }
 
 .logo-title {
@@ -75,9 +99,15 @@ button {
 
 .logo-subtitle {
   font-size: 10px;
+
   margin-top: 3px;
-  opacity: 0.75;
+
+  color: #aeb9c8;
 }
+
+/* =========================
+   SIDEBAR MENU
+========================= */
 
 .sidebar-menu {
   padding-top: 10px;
@@ -86,31 +116,48 @@ button {
 .menu-item {
   width: 100%;
   height: 43px;
+
   border: none;
+
   background: transparent;
-  color: #e8e8ed;
+
+  color: #cbd5e1;
+
   display: flex;
   align-items: center;
+
   gap: 12px;
+
   padding: 0 20px;
+
   cursor: pointer;
+
   font-size: 13px;
+
   text-align: left;
-  transition: 0.15s;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .menu-item:hover {
-  background: rgba(0, 0, 0, 0.12);
+  background: #314158;
+
+  color: #ffffff;
 }
 
 .menu-item.active {
-  background: #24242f;
-  color: #fff;
+  background: #3b82f6;
+
+  color: #ffffff;
 }
 
 .menu-icon {
   width: 18px;
+
   text-align: center;
+
   font-size: 15px;
 }
 
@@ -118,15 +165,23 @@ button {
   margin-left: auto;
 }
 
+/* =========================
+   SIDEBAR BOTTOM
+========================= */
+
 .sidebar-bottom {
   margin-top: auto;
+
   padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  border-top: 1px solid #354255;
 }
 
 .system-version {
-  color: rgba(255, 255, 255, 0.55);
+  color: #8794a6;
+
   font-size: 10px;
+
   line-height: 1.7;
 }
 
@@ -136,7 +191,9 @@ button {
 
 .main-area {
   margin-left: 245px;
+
   width: calc(100% - 245px);
+
   min-height: 100vh;
 }
 
@@ -146,95 +203,182 @@ button {
 
 .topbar {
   height: 76px;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e5e7eb;
+
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
+
   padding: 0 25px;
 }
 
+/* =========================
+   PAGE TITLE
+========================= */
+
 .page-title h1 {
   font-size: 18px;
-  color: #333;
+
+  color: #1f2937;
+
   font-weight: 600;
 }
 
 .page-title span {
   display: block;
+
   font-size: 11px;
-  color: #888;
+
+  color: #8a94a3;
+
   margin-top: 4px;
 }
 
+/* =========================
+   TOPBAR RIGHT
+========================= */
+
 .topbar-right {
   display: flex;
+
   align-items: center;
+
   gap: 15px;
 }
 
 .topbar-button {
   width: 32px;
   height: 32px;
+
   border: none;
+
   background: transparent;
-  color: #666;
+
+  color: #64748b;
+
   cursor: pointer;
+
   font-size: 17px;
+
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
+
+.topbar-button:hover {
+  color: #2563eb;
+
+  background: #f1f5f9;
+}
+
+/* =========================
+   LANGUAGE
+========================= */
 
 .language {
   font-size: 12px;
-  color: #555;
+
+  color: #64748b;
+
   display: flex;
+
   gap: 5px;
+
   align-items: center;
 }
 
+/* =========================
+   USER PROFILE
+========================= */
+
 .user-profile {
   display: flex;
+
   align-items: center;
+
   gap: 8px;
+
   padding-left: 12px;
-  border-left: 1px solid #ddd;
+
+  border-left: 1px solid #e5e7eb;
 }
 
 .user-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background: #e9e9e9;
+
+  border-radius: 7px;
+
+  background: #eef2f7;
+
+  color: #475569;
+
   display: flex;
+
   justify-content: center;
+
   align-items: center;
 }
 
 .user-info strong {
   display: block;
+
   font-size: 12px;
+
   font-weight: 600;
+
+  color: #1f2937;
 }
 
 .user-info span {
   display: block;
+
   font-size: 10px;
-  color: #999;
+
+  color: #8a94a3;
+
   margin-top: 3px;
 }
 
 .user-arrow {
   font-size: 12px;
-  color: #777;
+
+  color: #64748b;
 }
+
+/* =========================
+   MENU BUTTON
+========================= */
 
 .menu-button {
   border: none;
+
   background: transparent;
+
   font-size: 18px;
+
   cursor: pointer;
-  color: #555;
+
+  color: #64748b;
+
+  width: 32px;
+  height: 32px;
+
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
+.menu-button:hover {
+  color: #2563eb;
+
+  background: #f1f5f9;
+}
 /* =========================
    CONTENT
 ========================= */
@@ -243,37 +387,71 @@ button {
   padding: 25px;
 }
 
+/* =========================
+   CONTENT HEADING
+========================= */
+
 .content-heading {
   display: flex;
+
   justify-content: space-between;
   align-items: center;
+
   margin-bottom: 22px;
 }
 
 .content-heading h2 {
   font-size: 23px;
+
   font-weight: 600;
-  color: #333;
+
+  color: #1f2937;
+
+  letter-spacing: -0.2px;
 }
 
 .content-heading p {
-  color: #888;
+  color: #8a94a3;
+
   font-size: 12px;
+
   margin-top: 5px;
 }
 
+/* =========================
+   PRIMARY BUTTON
+========================= */
+
 .primary-button {
-  background: #62627b;
-  color: white;
+  background: #2563eb;
+
+  color: #ffffff;
+
   border: none;
-  border-radius: 4px;
+
+  border-radius: 5px;
+
   padding: 10px 18px;
+
   cursor: pointer;
+
   font-size: 12px;
+
+  font-weight: 500;
+
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .primary-button:hover {
-  background: #4f4f66;
+  background: #1d4ed8;
+
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.18);
+}
+
+.primary-button:active {
+  background: #1e40af;
 }
 /* =====================================================
    DASHBOARD
@@ -309,7 +487,7 @@ button {
 
 .dashboard-book-button {
   border: none;
-  background: #62647e;
+  background: #3b82f6;
   color: #fff;
   padding: 13px 20px;
   border-radius: 8px;
@@ -1302,12 +1480,12 @@ button {
 }
 
 .submit-booking-button {
-  background: #62647e;
+  background: #2563eb;
   color: white;
 }
 
 .submit-booking-button:hover {
-  background: #50526b;
+  background: #2563eb;
 }
 
 @media (max-width: 900px) {
@@ -1420,57 +1598,685 @@ button {
   color: #555;
   margin-top: 8px;
 }
-/* =========================
+/* =====================================================
    DARK MODE
-========================= */
+   Dashboard Style
+===================================================== */
 
 body {
   transition:
-    background-color 0.25s ease,
-    color 0.25s ease;
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
+
+/* =====================================================
+   BODY
+===================================================== */
 
 body.dark-mode {
-  background: #111827;
-  color: #f9fafb;
+  background: #181a1f;
+  color: #e5e7eb;
+}
+/* =========================
+   DARK MODE - ROOMS CONTAINER
+========================= */
+
+body.dark-mode .rooms-container {
+  background: #181a1f;
+  border-color: #30343b;
+}
+/* =========================
+   DARK MODE - EMPTY STATE
+========================= */
+
+body.dark-mode .rooms-empty h3 {
+  color: #000000 !important;
 }
 
+body.dark-mode .booking-empty h3 {
+  color: #000000 !important;
+}
+/* =====================================================
+   DARK MODE - BOOKING SECTION
+===================================================== */
+
+body.dark-mode .booking-section {
+  background: #20232a;
+  border-color: #30343b;
+}
+
+/* หัวข้อ เช่น ข้อมูลห้องประชุม */
+body.dark-mode .booking-section h3 {
+  color: #f8fafc !important;
+}
+
+/* label เช่น ชื่อผู้จอง, วันที่เริ่ม */
+body.dark-mode .booking-section label {
+  color: #e5e7eb !important;
+}
+
+/* ข้อความรายละเอียดทั่วไป */
+body.dark-mode .booking-section span {
+  color: #cbd5e1;
+}
+
+/* selected room */
+body.dark-mode .selected-room {
+  background: #1b1e24;
+  border-color: #30343b;
+}
+
+body.dark-mode .selected-room strong {
+  color: #f8fafc !important;
+}
+
+body.dark-mode .selected-room span {
+  color: #cbd5e1 !important;
+}
+
+/* input */
+body.dark-mode .booking-section input,
+body.dark-mode .booking-section select,
+body.dark-mode .booking-section textarea {
+  background: #181a1f;
+  color: #f8fafc;
+  border-color: #3b4048;
+}
+
+/* placeholder */
+body.dark-mode .booking-section input::placeholder,
+body.dark-mode .booking-section textarea::placeholder {
+  color: #8b95a3;
+}
+
+/* dropdown option */
+body.dark-mode .booking-section select option {
+  background: #181a1f;
+  color: #f8fafc;
+}
+
+/* กล่องข้อมูล ℹ️ */
+body.dark-mode .booking-info {
+  background: #252a33;
+  color: #cbd5e1;
+  border-color: #3b4048;
+}
+
+/* อุปกรณ์ */
+body.dark-mode .equipment-options label {
+  color: #e5e7eb !important;
+}
+/* =====================================================
+   TOPBAR
+===================================================== */
+
 body.dark-mode .topbar {
-  background: #1f2937;
-  color: #ffffff;
-  border-color: #374151;
+  background: #20232a;
+  color: #f3f4f6;
+  border-bottom: 1px solid #30343b;
 }
 
 body.dark-mode .page-title h1 {
-  color: #ffffff;
+  color: #f3f4f6 !important;
 }
 
 body.dark-mode .page-title span {
-  color: #9ca3af;
+  color: #9ca3af !important;
 }
+
+/* =====================================================
+   TOPBAR RIGHT
+===================================================== */
 
 body.dark-mode .topbar-button,
 body.dark-mode .language {
+  color: #cbd5e1;
+}
+
+body.dark-mode .topbar-button:hover {
+  background: #2b2f36;
   color: #ffffff;
 }
 
+/* =====================================================
+   USER
+===================================================== */
+
 body.dark-mode .user-profile {
-  background: #374151;
+  background: transparent;
+  border-left-color: #30343b;
+}
+
+body.dark-mode .user-avatar {
+  background: #2b2f36;
+  color: #d1d5db;
 }
 
 body.dark-mode .user-info strong {
-  color: #ffffff;
+  color: #f3f4f6;
 }
 
 body.dark-mode .user-info span {
   color: #9ca3af;
 }
 
+body.dark-mode .user-arrow {
+  color: #9ca3af;
+}
+
+/* =====================================================
+   MENU BUTTON
+===================================================== */
+
 body.dark-mode .menu-button {
+  color: #cbd5e1;
+}
+
+body.dark-mode .menu-button:hover {
+  background: #2b2f36;
   color: #ffffff;
 }
 
+/* =====================================================
+   CONTENT
+===================================================== */
+
+body.dark-mode .content {
+  color: #e5e7eb;
+}
+
+body.dark-mode .content-heading h2 {
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .content-heading p {
+  color: #9ca3af !important;
+}
+
+/* =====================================================
+   GENERAL HEADINGS
+===================================================== */
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4 {
+  color: #f3f4f6;
+}
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+body.dark-mode .dashboard {
+  background: transparent;
+  color: #e5e7eb;
+}
+
+body.dark-mode .dashboard-header h2 {
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .dashboard-header p {
+  color: #9ca3af !important;
+}
+
+/* =====================================================
+   STAT CARDS
+===================================================== */
+
+body.dark-mode .stat-card {
+  background: #20232a;
+  border: 1px solid #30343b;
+  color: #e5e7eb;
+}
+
+body.dark-mode .stat-content span {
+  color: #a1a1aa;
+}
+
+body.dark-mode .stat-number strong {
+  color: #f3f4f6;
+}
+
+body.dark-mode .stat-number small {
+  color: #9ca3af;
+}
+
+/* =====================================================
+   PANELS
+===================================================== */
+
+body.dark-mode .panel {
+  background: #20232a;
+  border: 1px solid #30343b;
+  color: #e5e7eb;
+}
+
+body.dark-mode .panel-header h3 {
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .panel-header p {
+  color: #9ca3af !important;
+}
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+body.dark-mode .booking-table {
+  color: #e5e7eb;
+}
+
+body.dark-mode .booking-table thead {
+  background: #1b1e24;
+}
+
+body.dark-mode .booking-table th {
+  color: #000002;
+  border-bottom-color: #30343b;
+}
+
+body.dark-mode .booking-table td {
+  color: #d4d4d8;
+  border-bottom-color: #30343b;
+}
+
+body.dark-mode .booking-table tbody tr:hover {
+  background: #272a31;
+}
+
+body.dark-mode .table-room strong {
+  color: #f3f4f6;
+}
+
+body.dark-mode .table-room small {
+  color: #9ca3af;
+}
+
+body.dark-mode .booking-time {
+  color: #000000;
+}
+
+/* =====================================================
+   BOOKING SUMMARY
+===================================================== */
+
+body.dark-mode .booking-summary {
+  background: #1b1e24;
+  border: 1px solid #30343b;
+}
+
+body.dark-mode .booking-summary span {
+  color: #000000;
+}
+
+body.dark-mode .booking-summary strong {
+  color: #00040a;
+}
+
+/* =====================================================
+   QUICK MENU
+===================================================== */
+
+body.dark-mode .quick-menu button {
+  background: #20232a;
+  border: 1px solid #30343b;
+  color: #e5e7eb;
+}
+
+body.dark-mode .quick-menu button:hover {
+  background: #272a31;
+  border-color: #41454d;
+}
+
+body.dark-mode .quick-menu strong {
+  color: #f3f4f6;
+}
+
+body.dark-mode .quick-menu small {
+  color: #9ca3af;
+}
+
+body.dark-mode .quick-arrow {
+  color: #71717a;
+}
+
+/* =====================================================
+   ROOMS / BOOKING / ADMIN CARDS
+===================================================== */
+
+body.dark-mode .room-card,
+body.dark-mode .rooms-card,
+body.dark-mode .room-item,
+body.dark-mode .booking-card,
+body.dark-mode .admin-card {
+  background: #20232a !important;
+  border: 1px solid #30343b !important;
+  color: #e5e7eb !important;
+}
+
+/* =====================================================
+   CARD HEADINGS
+===================================================== */
+
+body.dark-mode .room-card h3,
+body.dark-mode .rooms-card h3,
+body.dark-mode .room-item h3,
+body.dark-mode .booking-card h3,
+body.dark-mode .admin-card h3 {
+  color: #f3f4f6 !important;
+}
+
+/* =====================================================
+   CARD TEXT
+===================================================== */
+
+body.dark-mode .room-card p,
+body.dark-mode .rooms-card p,
+body.dark-mode .room-item p,
+body.dark-mode .booking-card p,
+body.dark-mode .admin-card p {
+  color: #9ca3af !important;
+}
+
+/* =====================================================
+   BOOKING DETAIL
+===================================================== */
+
+body.dark-mode .booking-card div,
+body.dark-mode .booking-card span,
+body.dark-mode .booking-card label {
+  color: #cbd5e1;
+}
+
+body.dark-mode .booking-card strong {
+  color: #f3f4f6 !important;
+}
+
+/* =====================================================
+   BOOKING INFORMATION
+===================================================== */
+
+body.dark-mode .booking-card .room-info,
+body.dark-mode .booking-card .room-name,
+body.dark-mode .booking-card .room-code {
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode .booking-card .detail-label,
+body.dark-mode .booking-card .label {
+  color: #9ca3af !important;
+}
+
+body.dark-mode .booking-card .detail-value,
+body.dark-mode .booking-card .value {
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .booking-card small {
+  color: #9ca3af !important;
+}
+
+/* =====================================================
+   BOOKING CARD HOVER
+===================================================== */
+
+body.dark-mode .booking-card:hover,
+body.dark-mode .room-card:hover {
+  background: #272a31 !important;
+  border-color: #41454d !important;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+body.dark-mode .status.approved {
+  color: #4ade80 !important;
+}
+
+body.dark-mode .status.pending {
+  color: #fbbf24 !important;
+}
+
+body.dark-mode .status.rejected {
+  color: #f87171 !important;
+}
+
+body.dark-mode .status.cancelled {
+  color: #94a3b8 !important;
+}
+/* =====================================================
+   DARK MODE - ADMIN BOOKING STATUS
+===================================================== */
+
+/* =====================================================
+   DARK MODE - ADMIN BOOKING STATUS
+===================================================== */
+
+/* รออนุมัติ */
+body.dark-mode .booking-status.pending {
+  color: #facc15 !important;
+  background: rgba(250, 204, 21, 0.12) !important;
+  border: 1px solid rgba(250, 204, 21, 0.35) !important;
+  font-weight: 700;
+}
+
+body.dark-mode .booking-status.pending > span {
+  color: #facc15 !important;
+}
+
+
+/* อนุมัติแล้ว */
+body.dark-mode .booking-status.approved {
+  color: #4ade80 !important;
+  background: rgba(74, 222, 128, 0.12) !important;
+  border: 1px solid rgba(74, 222, 128, 0.35) !important;
+  font-weight: 700;
+}
+
+body.dark-mode .booking-status.approved > span {
+  color: #4ade80 !important;
+}
+
+
+/* ไม่อนุมัติ */
+body.dark-mode .booking-status.rejected {
+  color: #fb7185 !important;
+  background: rgba(251, 113, 133, 0.12) !important;
+  border: 1px solid rgba(251, 113, 133, 0.35) !important;
+  font-weight: 700;
+}
+
+body.dark-mode .booking-status.rejected > span {
+  color: #fb7185 !important;
+}
+
+
+/* ยกเลิก */
+body.dark-mode .booking-status.cancelled {
+  color: #cbd5e1 !important;
+  background: rgba(203, 213, 225, 0.10) !important;
+  border: 1px solid rgba(203, 213, 225, 0.25) !important;
+  font-weight: 700;
+}
+
+body.dark-mode .booking-status.cancelled > span {
+  color: #cbd5e1 !important;
+}
+/* =====================================================
+   BUTTON
+===================================================== */
+
+body.dark-mode .dashboard-book-button,
+body.dark-mode .primary-button {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+body.dark-mode .dashboard-book-button:hover,
+body.dark-mode .primary-button:hover {
+  background: #2563eb;
+}
+
+/* =====================================================
+   LINKS
+===================================================== */
+
+body.dark-mode .link-button {
+  color: #60a5fa;
+}
+
+body.dark-mode .link-button:hover {
+  color: #93c5fd;
+}
+
+/* =====================================================
+   EMPTY STATE
+===================================================== */
+
+body.dark-mode .empty-table {
+  color: #9ca3af;
+}
+
+body.dark-mode .empty-table strong {
+  color: #e5e7eb;
+}
+
+body.dark-mode .empty-table small {
+  color: #9ca3af;
+}
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
 body.dark-mode .login-button {
+  color: #ffffff;
+}
+/* =====================================================
+   BOOKING SUMMARY CARD - DARK MODE
+===================================================== */
+
+body.dark-mode .booking-summary-card {
+  background: #20232a !important;
+  border-color: #30343b !important;
+  color: #e5e7eb !important;
+}
+
+/* ตัวหนังสือ เช่น ทั้งหมด / รออนุมัติ / อนุมัติแล้ว */
+body.dark-mode .booking-summary-card span {
+  color: #cbd5e1 !important;
+}
+
+/* ตัวเลข เช่น 7 / 0 / 6 / 1 */
+body.dark-mode .booking-summary-card strong {
+  color: #f8fafc !important;
+}
+
+/* hover */
+body.dark-mode .booking-summary-card:hover {
+  background: #272a31 !important;
+  border-color: #41454d !important;
+}
+
+/* card ที่ถูกเลือก */
+body.dark-mode .booking-summary-card.active {
+  background: #272a31 !important;
+  border-color: #3b82f6 !important;
+}
+/* =========================
+   DARK MODE - ROOM CARD
+========================= */
+
+body.dark-mode .room-card {
+  background: #20232a;
+  border-color: #30343b;
+  color: #f9fafb;
+}
+
+/* รหัสห้อง */
+body.dark-mode .room-card strong {
+  color: #f9fafb;
+}
+
+/* ชื่อห้อง / รายละเอียด */
+body.dark-mode .room-card h3 {
+  color: #f9fafb;
+}
+
+/* ข้อมูล อาคาร / จำนวนคน */
+body.dark-mode .room-card span,
+body.dark-mode .room-card p {
+  color: #d1d5db;
+}
+
+/* ถ้ามี class เฉพาะข้อมูลห้อง */
+body.dark-mode .room-code,
+body.dark-mode .room-building,
+body.dark-mode .room-capacity {
+  color: #d1d5db;
+}
+/* =========================
+   DARK MODE - ROOM TOOL BAR
+========================= */
+
+body.dark-mode .room-tool-bar {
+  background: #20232a;
+  border-color: #30343b;
+  color: #f9fafb;
+}
+
+body.dark-mode .room-tool-bar h3,
+body.dark-mode .room-tool-bar strong {
+  color: #f9fafb;
+}
+
+body.dark-mode .room-tool-bar p {
+  color: #9ca3af;
+}
+
+body.dark-mode .room-tool-bar label {
+  color: #d1d5db;
+}
+
+body.dark-mode .room-tool-bar input,
+body.dark-mode .room-tool-bar select {
+  background: #181a1f;
+  color: #f9fafb;
+  border-color: #3b4048;
+}
+
+body.dark-mode .room-tool-bar input::placeholder {
+  color: #8b95a3;
+}
+/* =========================
+   DARK MODE - ROOM COUNT
+========================= */
+
+body.dark-mode .room-count {
+  color: #d1d5db;
+}
+
+body.dark-mode .room-count strong {
+  color: #ffffff;
+  font-weight: 700;
+}/* =========================
+   DARK MODE - ROOM TOOLBAR
+========================= */
+
+body.dark-mode .room-toolbar {
+  background: #20232a;
+  border-color: #30343b;
+}
+
+body.dark-mode .room-count {
+  color: #d1d5db;
+}
+
+body.dark-mode .room-count strong {
   color: #ffffff;
 }
 /* =====================================================
@@ -2687,7 +3493,7 @@ body.dark-mode .login-button {
   border: none;
   border-radius: 8px;
 
-  background: #62647e;
+  background: #2563eb;
   color: #fff;
 
   font-size: 14px;
