@@ -3,7 +3,21 @@ const router = express.Router();
 
 const pool = require("../db");
 const { sendEmail } = require("../services/notificationService");
+const formatThaiDate = (date) => {
+  if (!date) return "-";
 
+  return new Date(date).toLocaleDateString("th-TH", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const formatTime = (time) => {
+  if (!time) return "-";
+
+  return String(time).slice(0, 5);
+};
 // =====================================================
 // GET รายการจองทั้งหมด
 // ใช้สำหรับ Dashboard / Admin
@@ -257,7 +271,16 @@ router.post("/", async (req, res) => {
         note,
       ]
     );
+    const startDate = formatThaiDate(start_date);
+    const endDate = formatThaiDate(end_date);
 
+    const dateText =
+      startDate === endDate
+        ? startDate
+        : `${startDate} ถึง ${endDate}`;
+
+    const startTime = formatTime(start_time);
+    const endTime = formatTime(end_time);
     // =================================================
     // ส่ง Email แจ้งเตือนผู้จอง
     // =================================================
@@ -298,13 +321,13 @@ router.post("/", async (req, res) => {
         </p>
 
         <p>
-          <strong>วันที่:</strong>
-          ${start_date} ถึง ${end_date}
+          <strong>วันที่:</strong> 
+${dateText}
         </p>
 
         <p>
-          <strong>เวลา:</strong>
-          ${start_time} - ${end_time}
+         <strong>เวลา:</strong> 
+${startTime} - ${endTime} น.
         </p>
 
         <p>
@@ -362,7 +385,7 @@ router.patch("/:id/status", async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
+    
     const allowedStatus = [
       "pending",
       "approved",
@@ -407,8 +430,18 @@ router.patch("/:id/status", async (req, res) => {
       });
     }
 
-    const booking = bookingResult.rows[0];
+  const booking = bookingResult.rows[0];
 
+const startDate = formatThaiDate(booking.start_date);
+const endDate = formatThaiDate(booking.end_date);
+
+const dateText =
+  startDate === endDate
+    ? startDate
+    : `${startDate} ถึง ${endDate}`;
+
+const startTime = formatTime(booking.start_time);
+const endTime = formatTime(booking.end_time);
     // =================================================
     // อัปเดตสถานะ
     // =================================================
@@ -488,16 +521,12 @@ router.patch("/:id/status", async (req, res) => {
 
         <p>
           <strong>วันที่:</strong>
-          ${booking.start_date}
-          ถึง
-          ${booking.end_date}
+${dateText}
         </p>
 
         <p>
-          <strong>เวลา:</strong>
-          ${booking.start_time}
-          -
-          ${booking.end_time}
+         <strong>เวลา:</strong>
+${startTime} - ${endTime} น.
         </p>
 
         <p>
