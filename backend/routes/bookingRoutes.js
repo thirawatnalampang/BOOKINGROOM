@@ -18,6 +18,17 @@ const formatTime = (time) => {
 
   return String(time).slice(0, 5);
 };
+const formatPurpose = (purpose) => {
+  const purposeMap = {
+    meeting: "ประชุม",
+    training: "อบรม",
+    presentation: "นำเสนอ",
+    interview: "สัมภาษณ์",
+    other: "อื่น ๆ",
+  };
+
+  return purposeMap[purpose] || purpose || "-";
+};
 // =====================================================
 // GET รายการจองทั้งหมด
 // ใช้สำหรับ Dashboard / Admin
@@ -332,9 +343,28 @@ ${startTime} - ${endTime} น.
 
         <p>
           <strong>จำนวนผู้เข้าร่วม:</strong>
-          ${participants} คน
-        </p>
+  ${participants} คน
+</p>
 
+<p>
+  <strong>สถานะ:</strong>
+  <span style="
+    color: orange;
+    font-weight: bold;
+  ">
+    รออนุมัติ
+  </span>
+</p>
+
+<p>
+  <strong>วัตถุประสงค์:</strong>
+  ${formatPurpose(purpose)}
+</p>
+
+<p>
+  <strong>อุปกรณ์ที่ต้องการ:</strong>
+  ${equipment || "-"}
+</p>
         <p>
           <strong>สถานะ:</strong>
           <span style="
@@ -528,21 +558,30 @@ ${dateText}
          <strong>เวลา:</strong>
 ${startTime} - ${endTime} น.
         </p>
+<p>
+  <strong>จำนวนผู้เข้าร่วม:</strong>
+  ${booking.participants} คน
+</p>
 
-        <p>
-          <strong>จำนวนผู้เข้าร่วม:</strong>
-          ${booking.participants} คน
-        </p>
+<p>
+  <strong>สถานะ:</strong>
+  <span style="
+    color: ${statusColor};
+    font-weight: bold;
+  ">
+    ${statusText}
+  </span>
+</p>
 
-        <p>
-          <strong>สถานะ:</strong>
-          <span style="
-            color: ${statusColor};
-            font-weight: bold;
-          ">
-            ${statusText}
-          </span>
-        </p>
+<p>
+  <strong>วัตถุประสงค์:</strong>
+  ${formatPurpose(booking.purpose)}
+</p>
+
+<p>
+  <strong>อุปกรณ์ที่ต้องการ:</strong>
+  ${booking.equipment || "-"}
+</p>
 
         <hr>
 

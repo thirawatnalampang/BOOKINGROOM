@@ -1,4 +1,684 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+// =====================================================
+// CONSTANTS
+// =====================================================
+
+const API_URL = "http://localhost:5000/api";
+
+// =====================================================
+// STATUS CONFIG
+// =====================================================
+
+const STATUS_CONFIG = {
+  pending: {
+    text: "รออนุมัติ",
+    icon: "◷",
+    badge: "border-amber-200 bg-amber-50 text-amber-700",
+    iconBg: "bg-amber-50 text-amber-600",
+  },
+
+  approved: {
+    text: "อนุมัติแล้ว",
+    icon: "✓",
+    badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    iconBg: "bg-emerald-50 text-emerald-600",
+  },
+
+  rejected: {
+    text: "ไม่อนุมัติ",
+    icon: "✕",
+    badge: "border-red-200 bg-red-50 text-red-700",
+    iconBg: "bg-red-50 text-red-600",
+  },
+
+  cancelled: {
+    text: "ยกเลิก",
+    icon: "−",
+    badge: "border-gray-200 bg-gray-100 text-gray-600",
+    iconBg: "bg-gray-100 text-gray-600",
+  },
+};
+
+const DEFAULT_STATUS = {
+  text: "-",
+  icon: "•",
+  badge: "border-gray-200 bg-gray-100 text-gray-600",
+  iconBg: "bg-gray-100 text-gray-600",
+};
+
+// =====================================================
+// PURPOSE
+// =====================================================
+
+const PURPOSE_MAP = {
+  meeting: "ประชุม",
+  training: "อบรม",
+  presentation: "นำเสนอ",
+  interview: "สัมภาษณ์",
+};
+
+// =====================================================
+// HELPERS
+// =====================================================
+
+const getStatusConfig = (status) => {
+  return (
+    STATUS_CONFIG[status] ?? {
+      ...DEFAULT_STATUS,
+      text: status || "-",
+    }
+  );
+};
+
+const formatDate = (date) => {
+  if (!date) return "-";
+
+  const value = String(date).substring(0, 10);
+  const [year, month, day] = value.split("-");
+
+  if (!year || !month || !day) {
+    return "-";
+  }
+
+  return `${day}/${month}/${year}`;
+};
+
+const formatTime = (time) => {
+  return time ? String(time).slice(0, 5) : "-";
+};
+
+const getPurpose = (purpose) => {
+  return PURPOSE_MAP[purpose] || purpose || "-";
+};
+
+const formatCreatedDate = (date) => {
+  if (!date) return "-";
+
+  return new Date(date).toLocaleDateString("th-TH");
+};
+
+// =====================================================
+// LOADING
+// =====================================================
+
+function LoadingState() {
+  return (
+    <div className="min-h-full bg-gray-50 px-4 py-6 md:px-8">
+      <div className="mx-auto max-w-7xl">
+
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+            จัดการรายการจอง
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500 md:text-base">
+            กำลังโหลดรายการจอง...
+          </p>
+        </div>
+
+        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm">
+
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-600" />
+
+          <p className="mt-4 text-sm text-gray-500">
+            กำลังโหลดข้อมูล...
+          </p>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =====================================================
+// PAGE HEADER
+// =====================================================
+
+function PageHeader({ onRefresh }) {
+  return (
+    <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+          จัดการรายการจอง
+        </h2>
+
+        <p className="mt-1 text-sm text-gray-500 md:text-base">
+          ตรวจสอบและอนุมัติคำขอจองห้องประชุม
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="inline-flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 active:scale-95"
+      >
+        <span className="text-lg">↻</span>
+        รีเฟรช
+      </button>
+
+    </div>
+  );
+}
+
+// =====================================================
+// SUMMARY CARD
+// =====================================================
+
+function SummaryCard({
+  label,
+  count,
+  icon,
+  iconBg,
+  active,
+  onClick,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        flex min-w-0 items-center gap-4 rounded-2xl border
+        bg-white p-5 text-left shadow-sm
+        transition-all duration-200
+        ${
+          active
+            ? "border-emerald-500 ring-2 ring-emerald-100"
+            : "border-gray-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
+        }
+      `}
+    >
+      <div
+        className={`
+          flex h-12 w-12 shrink-0 items-center justify-center
+          rounded-xl text-xl font-bold
+          ${iconBg}
+        `}
+      >
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <span className="block text-sm text-gray-500">
+          {label}
+        </span>
+
+        <strong className="mt-0.5 block text-2xl font-bold text-gray-900">
+          {count}
+        </strong>
+      </div>
+    </button>
+  );
+}
+
+// =====================================================
+// SUMMARY
+// =====================================================
+
+function BookingSummary({
+  counts,
+  filter,
+  onFilter,
+}) {
+  const cards = [
+    {
+      key: "all",
+      label: "ทั้งหมด",
+      count: counts.all,
+      icon: "▤",
+      iconBg: "bg-blue-50 text-blue-600",
+    },
+
+    {
+      key: "pending",
+      label: "รออนุมัติ",
+      count: counts.pending,
+      icon: "◷",
+      iconBg: "bg-amber-50 text-amber-600",
+    },
+
+    {
+      key: "approved",
+      label: "อนุมัติแล้ว",
+      count: counts.approved,
+      icon: "✓",
+      iconBg: "bg-emerald-50 text-emerald-600",
+    },
+
+    {
+      key: "rejected",
+      label: "ไม่อนุมัติ",
+      count: counts.rejected,
+      icon: "✕",
+      iconBg: "bg-red-50 text-red-600",
+    },
+
+    {
+      key: "cancelled",
+      label: "ยกเลิก",
+      count: counts.cancelled,
+      icon: "−",
+      iconBg: "bg-gray-100 text-gray-600",
+    },
+  ];
+
+  return (
+    <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+
+      {cards.map((card) => (
+        <SummaryCard
+          key={card.key}
+          label={card.label}
+          count={card.count}
+          icon={card.icon}
+          iconBg={card.iconBg}
+          active={filter === card.key}
+          onClick={() => onFilter(card.key)}
+        />
+      ))}
+
+    </div>
+  );
+}
+
+// =====================================================
+// FILTER
+// =====================================================
+
+function BookingFilter({
+  counts,
+  filter,
+  onFilter,
+}) {
+  const filters = [
+    {
+      key: "all",
+      label: "ทั้งหมด",
+      count: counts.all,
+    },
+
+    {
+      key: "pending",
+      label: "รออนุมัติ",
+      count: counts.pending,
+    },
+
+    {
+      key: "approved",
+      label: "อนุมัติแล้ว",
+      count: counts.approved,
+    },
+
+    {
+      key: "rejected",
+      label: "ไม่อนุมัติ",
+      count: counts.rejected,
+    },
+
+    {
+      key: "cancelled",
+      label: "ยกเลิก",
+      count: counts.cancelled,
+    },
+  ];
+
+  return (
+    <div className="mb-6 overflow-x-auto rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
+
+      <div className="flex min-w-max gap-1">
+
+        {filters.map((item) => {
+          const isActive = filter === item.key;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => onFilter(item.key)}
+              className={`
+                rounded-xl px-4 py-2.5 text-sm font-medium transition
+                ${
+                  isActive
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }
+              `}
+            >
+              {item.label}
+
+              <span
+                className={`
+                  ml-2 rounded-full px-2 py-0.5 text-xs
+                  ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-100 text-gray-500"
+                  }
+                `}
+              >
+                {item.count}
+              </span>
+            </button>
+          );
+        })}
+
+      </div>
+    </div>
+  );
+}
+
+// =====================================================
+// RESULT HEADER
+// =====================================================
+
+function ResultHeader({ count }) {
+  return (
+    <div className="mb-4 flex items-center justify-between">
+
+      <strong className="text-lg font-semibold text-gray-900">
+        รายการจอง
+      </strong>
+
+      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-500">
+        พบ {count} รายการ
+      </span>
+
+    </div>
+  );
+}
+
+// =====================================================
+// INFO ITEM
+// =====================================================
+
+function BookingInfo({
+  label,
+  value,
+}) {
+  return (
+    <div>
+      <p className="mb-1 text-xs font-medium text-gray-400">
+        {label}
+      </p>
+
+      <p className="font-medium text-gray-800">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+// =====================================================
+// EXTRA INFO
+// =====================================================
+
+function ExtraInfo({
+  label,
+  value,
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+
+      <p className="mb-1 text-xs font-semibold text-gray-400">
+        {label}
+      </p>
+
+      <p className="text-sm text-gray-700">
+        {value}
+      </p>
+
+    </div>
+  );
+}
+
+// =====================================================
+// BOOKING CARD
+// =====================================================
+
+function BookingCard({
+  booking,
+  onUpdateStatus,
+  updating,
+}) {
+  const status = getStatusConfig(
+    booking.status
+  );
+
+  const startDate = String(
+    booking.start_date || ""
+  ).substring(0, 10);
+
+  const endDate = String(
+    booking.end_date || ""
+  ).substring(0, 10);
+
+  const isMultiDay =
+    startDate &&
+    endDate &&
+    startDate !== endDate;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-gray-300 hover:shadow-md">
+
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
+      <div className="flex flex-col gap-4 border-b border-gray-100 p-5 sm:flex-row sm:items-start sm:justify-between md:p-6">
+
+        <div className="flex min-w-0 items-start gap-4">
+
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-sm font-bold text-emerald-700">
+            #{booking.id}
+          </div>
+
+          <div className="min-w-0">
+
+            <h3 className="truncate text-lg font-semibold text-gray-900">
+              {booking.title || "ไม่มีหัวข้อ"}
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              {booking.room_code || "-"}
+              {" · "}
+              {booking.room_name || "-"}
+            </p>
+
+          </div>
+        </div>
+
+        <span
+          className={`
+            inline-flex w-fit items-center gap-1.5
+            rounded-full border px-3 py-1.5
+            text-xs font-semibold
+            ${status.badge}
+          `}
+        >
+          <span>{status.icon}</span>
+          {status.text}
+        </span>
+
+      </div>
+
+      {/* =================================================
+          INFO
+      ================================================= */}
+
+      <div className="grid grid-cols-1 gap-5 border-b border-gray-100 p-5 sm:grid-cols-2 lg:grid-cols-5 md:p-6">
+
+        <BookingInfo
+          label="ผู้จอง"
+          value={booking.booking_name || "-"}
+        />
+
+        <BookingInfo
+          label="วันที่"
+          value={
+            <>
+              {formatDate(
+                booking.start_date
+              )}
+
+              {isMultiDay &&
+                ` - ${formatDate(
+                  booking.end_date
+                )}`}
+            </>
+          }
+        />
+
+        <BookingInfo
+          label="เวลา"
+          value={`${formatTime(
+            booking.start_time
+          )} - ${formatTime(
+            booking.end_time
+          )}`}
+        />
+
+        <BookingInfo
+          label="ผู้เข้าร่วม"
+          value={`${booking.participants ?? 0} คน`}
+        />
+
+        <BookingInfo
+          label="วัตถุประสงค์"
+          value={getPurpose(
+            booking.purpose
+          )}
+        />
+
+      </div>
+
+      {/* =================================================
+          EXTRA
+      ================================================= */}
+
+      {(booking.equipment ||
+        booking.note) && (
+
+        <div className="border-b border-gray-100 bg-gray-50/70 px-5 py-4 md:px-6">
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+
+            {booking.equipment && (
+              <ExtraInfo
+                label="อุปกรณ์"
+                value={booking.equipment}
+              />
+            )}
+
+            {booking.note && (
+              <ExtraInfo
+                label="หมายเหตุ"
+                value={booking.note}
+              />
+            )}
+
+          </div>
+
+        </div>
+      )}
+
+      {/* =================================================
+          ADMIN ACTION
+      ================================================= */}
+
+      {booking.status === "pending" && (
+
+        <div className="flex flex-col gap-3 border-b border-gray-100 p-5 sm:flex-row sm:justify-end md:px-6">
+
+          <button
+            type="button"
+            disabled={updating}
+            onClick={() =>
+              onUpdateStatus(
+                booking.id,
+                "approved"
+              )
+            }
+            className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {updating
+              ? "กำลังดำเนินการ..."
+              : "✓ อนุมัติ"}
+          </button>
+
+          <button
+            type="button"
+            disabled={updating}
+            onClick={() =>
+              onUpdateStatus(
+                booking.id,
+                "rejected"
+              )
+            }
+            className="rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {updating
+              ? "กำลังดำเนินการ..."
+              : "✕ ไม่อนุมัติ"}
+          </button>
+
+        </div>
+      )}
+
+      {/* =================================================
+          FOOTER
+      ================================================= */}
+
+      <div className="flex flex-col gap-1 bg-gray-50/50 px-5 py-3 text-xs text-gray-400 sm:flex-row sm:items-center sm:justify-between md:px-6">
+
+        <span>
+          สร้างรายการเมื่อ{" "}
+          {formatCreatedDate(
+            booking.created_at
+          )}
+        </span>
+
+        <span>
+          Booking #{booking.id}
+        </span>
+
+      </div>
+
+    </div>
+  );
+}
+
+// =====================================================
+// EMPTY STATE
+// =====================================================
+
+function EmptyState({ filter }) {
+  return (
+    <div className="flex min-h-[380px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white px-6 text-center">
+
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-2xl text-gray-400">
+        ▤
+      </div>
+
+      <h3 className="text-lg font-semibold text-gray-800">
+        {filter !== "all"
+          ? "ไม่พบรายการจอง"
+          : "ยังไม่มีรายการจอง"}
+      </h3>
+
+      <p className="mt-1 max-w-md text-sm text-gray-500">
+        {filter !== "all"
+          ? "ไม่มีรายการจองในสถานะนี้"
+          : "ยังไม่มีรายการจองห้องประชุม"}
+      </p>
+
+    </div>
+  );
+}
+
+// =====================================================
+// MAIN
+// =====================================================
 
 function AdminBookings() {
   const [bookings, setBookings] = useState([]);
@@ -7,48 +687,63 @@ function AdminBookings() {
   const [filter, setFilter] = useState("all");
 
   // =====================================================
-  // โหลดรายการจอง
+  // LOAD BOOKINGS
   // =====================================================
+
   const loadBookings = async () => {
     try {
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/bookings"
+        `${API_URL}/bookings`
       );
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data.message || "ไม่สามารถโหลดรายการจองได้"
+          data.message ||
+            "ไม่สามารถโหลดรายการจองได้"
         );
       }
 
       setBookings(
         Array.isArray(data) ? data : []
       );
+
     } catch (error) {
       console.error(
         "Load admin bookings error:",
         error
       );
 
-      alert("ไม่สามารถโหลดรายการจองได้");
+      alert(
+        "ไม่สามารถโหลดรายการจองได้"
+      );
+
       setBookings([]);
+
     } finally {
       setLoading(false);
     }
   };
+
+  // =====================================================
+  // INITIAL LOAD
+  // =====================================================
 
   useEffect(() => {
     loadBookings();
   }, []);
 
   // =====================================================
-  // อัปเดตสถานะ
+  // UPDATE STATUS
   // =====================================================
-  const updateStatus = async (id, status) => {
+
+  const updateStatus = async (
+    id,
+    status
+  ) => {
     const message =
       status === "approved"
         ? "คุณต้องการอนุมัติรายการจองนี้หรือไม่?"
@@ -62,25 +757,30 @@ function AdminBookings() {
       setUpdatingId(id);
 
       const response = await fetch(
-        `http://localhost:5000/api/bookings/${id}/status`,
+        `${API_URL}/bookings/${id}/status`,
         {
           method: "PATCH",
+
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
+
           body: JSON.stringify({
             status,
           }),
         }
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         alert(
           data.message ||
             "ไม่สามารถอัปเดตสถานะได้"
         );
+
         return;
       }
 
@@ -90,6 +790,7 @@ function AdminBookings() {
       );
 
       await loadBookings();
+
     } catch (error) {
       console.error(
         "Update status error:",
@@ -99,792 +800,146 @@ function AdminBookings() {
       alert(
         "ไม่สามารถเชื่อมต่อ Server ได้"
       );
+
     } finally {
       setUpdatingId(null);
     }
   };
 
   // =====================================================
-  // Status
+  // COUNTS
   // =====================================================
-  const getStatus = (status) => {
-    switch (status) {
-      case "pending":
-        return {
-          text: "รออนุมัติ",
-          className: "pending",
-          icon: "◷",
-        };
 
-      case "approved":
-        return {
-          text: "อนุมัติแล้ว",
-          className: "approved",
-          icon: "✓",
-        };
+  const counts = useMemo(() => {
+    return {
+      all: bookings.length,
 
-      case "rejected":
-        return {
-          text: "ไม่อนุมัติ",
-          className: "rejected",
-          icon: "✕",
-        };
+      pending: bookings.filter(
+        (booking) =>
+          booking.status === "pending"
+      ).length,
 
-      case "cancelled":
-        return {
-          text: "ยกเลิก",
-          className: "cancelled",
-          icon: "−",
-        };
+      approved: bookings.filter(
+        (booking) =>
+          booking.status === "approved"
+      ).length,
 
-      default:
-        return {
-          text: status || "-",
-          className: "",
-          icon: "•",
-        };
-    }
-  };
+      rejected: bookings.filter(
+        (booking) =>
+          booking.status === "rejected"
+      ).length,
 
-  // =====================================================
-  // Format Date
-  // =====================================================
-  const formatDate = (date) => {
-    if (!date) return "-";
-
-    const value = String(date).substring(0, 10);
-
-    const [year, month, day] =
-      value.split("-");
-
-    if (!year || !month || !day) {
-      return "-";
-    }
-
-    return `${day}/${month}/${year}`;
-  };
-
-  // =====================================================
-  // Format Purpose
-  // =====================================================
-  const getPurpose = (purpose) => {
-    const purposes = {
-      meeting: "ประชุม",
-      training: "อบรม",
-      presentation: "นำเสนอ",
-      interview: "สัมภาษณ์",
+      cancelled: bookings.filter(
+        (booking) =>
+          booking.status === "cancelled"
+      ).length,
     };
+  }, [bookings]);
 
-    return (
-      purposes[purpose] ||
-      purpose ||
-      "-"
+  // =====================================================
+  // FILTERED BOOKINGS
+  // =====================================================
+
+  const filteredBookings = useMemo(() => {
+    if (filter === "all") {
+      return bookings;
+    }
+
+    return bookings.filter(
+      (booking) =>
+        booking.status === filter
     );
-  };
+  }, [bookings, filter]);
 
   // =====================================================
-  // Statistics
+  // LOADING
   // =====================================================
-  const totalBookings = bookings.length;
 
-  const pendingBookings =
-    bookings.filter(
-      (booking) =>
-        booking.status === "pending"
-    ).length;
-
-  const approvedBookings =
-    bookings.filter(
-      (booking) =>
-        booking.status === "approved"
-    ).length;
-
-  const rejectedBookings =
-    bookings.filter(
-      (booking) =>
-        booking.status === "rejected"
-    ).length;
-
-  const cancelledBookings =
-    bookings.filter(
-      (booking) =>
-        booking.status === "cancelled"
-    ).length;
-
-  // =====================================================
-  // Filter
-  // =====================================================
-  const filteredBookings =
-    filter === "all"
-      ? bookings
-      : bookings.filter(
-          (booking) =>
-            booking.status === filter
-        );
-
-  // =====================================================
-  // Loading
-  // =====================================================
   if (loading) {
-    return (
-      <div className="my-bookings-page">
-
-        <div className="content-heading">
-          <div>
-            <h2>
-              จัดการรายการจอง
-            </h2>
-
-            <p>
-              กำลังโหลดรายการจอง...
-            </p>
-          </div>
-        </div>
-
-        <div className="booking-loading">
-          <div className="loading-spinner"></div>
-
-          <p>
-            กำลังโหลดข้อมูล...
-          </p>
-        </div>
-
-      </div>
-    );
+    return <LoadingState />;
   }
 
   // =====================================================
-  // Render
+  // RENDER
   // =====================================================
+
   return (
-    <div className="my-bookings-page">
+    <div className="min-h-full bg-gray-50 px-4 py-6 md:px-8">
 
-      {/* =================================================
-          HEADER
-      ================================================= */}
-      <div className="content-heading">
+      <div className="mx-auto max-w-7xl">
 
-        <div>
-          <h2>
-            จัดการรายการจอง
-          </h2>
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
-          <p>
-            ตรวจสอบและอนุมัติคำขอจองห้องประชุม
-          </p>
-        </div>
+        <PageHeader
+          onRefresh={loadBookings}
+        />
 
-        <button
-          type="button"
-          className="refresh-button"
-          onClick={loadBookings}
-        >
-          ↻ รีเฟรช
-        </button>
+        {/* =================================================
+            SUMMARY
+        ================================================= */}
 
-      </div>
+        <BookingSummary
+          counts={counts}
+          filter={filter}
+          onFilter={setFilter}
+        />
 
+        {/* =================================================
+            FILTER
+        ================================================= */}
 
-      {/* =================================================
-          SUMMARY
-      ================================================= */}
-      <div className="booking-summary">
+        <BookingFilter
+          counts={counts}
+          filter={filter}
+          onFilter={setFilter}
+        />
 
-        {/* ทั้งหมด */}
-        <div
-          className={`booking-summary-card ${
-            filter === "all"
-              ? "active"
-              : ""
-          }`}
-          onClick={() =>
-            setFilter("all")
-          }
-        >
-          <div className="summary-icon blue">
-            ▤
-          </div>
+        {/* =================================================
+            RESULT HEADER
+        ================================================= */}
 
-          <div>
-            <span>
-              ทั้งหมด
-            </span>
+        <ResultHeader
+          count={filteredBookings.length}
+        />
 
-            <strong>
-              {totalBookings}
-            </strong>
-          </div>
-        </div>
+        {/* =================================================
+            EMPTY / LIST
+        ================================================= */}
 
+        {filteredBookings.length === 0 ? (
 
-        {/* รออนุมัติ */}
-        <div
-          className={`booking-summary-card ${
-            filter === "pending"
-              ? "active"
-              : ""
-          }`}
-          onClick={() =>
-            setFilter("pending")
-          }
-        >
-          <div className="summary-icon orange">
-            ◷
-          </div>
+          <EmptyState
+            filter={filter}
+          />
 
-          <div>
-            <span>
-              รออนุมัติ
-            </span>
+        ) : (
 
-            <strong>
-              {pendingBookings}
-            </strong>
-          </div>
-        </div>
+          <div className="space-y-4">
 
+            {filteredBookings.map(
+              (booking) => (
 
-        {/* อนุมัติแล้ว */}
-        <div
-          className={`booking-summary-card ${
-            filter === "approved"
-              ? "active"
-              : ""
-          }`}
-          onClick={() =>
-            setFilter("approved")
-          }
-        >
-          <div className="summary-icon green">
-            ✓
-          </div>
-
-          <div>
-            <span>
-              อนุมัติแล้ว
-            </span>
-
-            <strong>
-              {approvedBookings}
-            </strong>
-          </div>
-        </div>
-
-
-        {/* ไม่อนุมัติ */}
-        <div
-          className={`booking-summary-card ${
-            filter === "rejected"
-              ? "active"
-              : ""
-          }`}
-          onClick={() =>
-            setFilter("rejected")
-          }
-        >
-          <div className="summary-icon red">
-            ✕
-          </div>
-
-          <div>
-            <span>
-              ไม่อนุมัติ
-            </span>
-
-            <strong>
-              {rejectedBookings}
-            </strong>
-          </div>
-        </div>
-
-
-        {/* ยกเลิก */}
-        <div
-          className={`booking-summary-card ${
-            filter === "cancelled"
-              ? "active"
-              : ""
-          }`}
-          onClick={() =>
-            setFilter("cancelled")
-          }
-        >
-          <div className="summary-icon gray">
-            −
-          </div>
-
-          <div>
-            <span>
-              ยกเลิก
-            </span>
-
-            <strong>
-              {cancelledBookings}
-            </strong>
-          </div>
-        </div>
-
-      </div>
-
-
-      {/* =================================================
-          FILTER
-      ================================================= */}
-      <div className="booking-filter">
-
-        {/* ทั้งหมด */}
-        <button
-          type="button"
-          className={
-            filter === "all"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setFilter("all")
-          }
-        >
-          ทั้งหมด
-          <span>
-            {totalBookings}
-          </span>
-        </button>
-
-
-        {/* รออนุมัติ */}
-        <button
-          type="button"
-          className={
-            filter === "pending"
-              ? "active pending-filter"
-              : ""
-          }
-          onClick={() =>
-            setFilter("pending")
-          }
-        >
-          รออนุมัติ
-          <span>
-            {pendingBookings}
-          </span>
-        </button>
-
-
-        {/* อนุมัติแล้ว */}
-        <button
-          type="button"
-          className={
-            filter === "approved"
-              ? "active approved-filter"
-              : ""
-          }
-          onClick={() =>
-            setFilter("approved")
-          }
-        >
-          อนุมัติแล้ว
-          <span>
-            {approvedBookings}
-          </span>
-        </button>
-
-
-        {/* ไม่อนุมัติ */}
-        <button
-          type="button"
-          className={
-            filter === "rejected"
-              ? "active rejected-filter"
-              : ""
-          }
-          onClick={() =>
-            setFilter("rejected")
-          }
-        >
-          ไม่อนุมัติ
-          <span>
-            {rejectedBookings}
-          </span>
-        </button>
-
-
-        {/* ยกเลิก */}
-        <button
-          type="button"
-          className={
-            filter === "cancelled"
-              ? "active cancelled-filter"
-              : ""
-          }
-          onClick={() =>
-            setFilter("cancelled")
-          }
-        >
-          ยกเลิก
-          <span>
-            {cancelledBookings}
-          </span>
-        </button>
-
-      </div>
-
-
-      {/* =================================================
-          RESULT HEADER
-      ================================================= */}
-      <div className="booking-result-header">
-
-        <strong>
-          รายการจอง
-        </strong>
-
-        <span>
-          พบ {filteredBookings.length} รายการ
-        </span>
-
-      </div>
-
-
-      {/* =================================================
-          EMPTY
-      ================================================= */}
-      {filteredBookings.length === 0 ? (
-
-        <div className="rooms-empty booking-empty">
-
-          <div className="empty-icon">
-            ▤
-          </div>
-
-          <h3>
-            {filter !== "all"
-              ? "ไม่พบรายการจอง"
-              : "ยังไม่มีรายการจอง"}
-          </h3>
-
-          <p>
-            {filter !== "all"
-              ? "ไม่มีรายการจองในสถานะนี้"
-              : "ยังไม่มีรายการจองห้องประชุม"}
-          </p>
-
-        </div>
-
-      ) : (
-
-        /* =================================================
-           BOOKING LIST
-        ================================================= */
-        <div className="booking-list">
-
-          {filteredBookings.map(
-            (booking) => {
-
-              const status =
-                getStatus(
-                  booking.status
-                );
-
-              const startDate =
-                String(
-                  booking.start_date || ""
-                ).substring(0, 10);
-
-              const endDate =
-                String(
-                  booking.end_date || ""
-                ).substring(0, 10);
-
-              const isMultiDay =
-                startDate &&
-                endDate &&
-                startDate !== endDate;
-
-              return (
-
-                <div
-                  className="booking-card"
+                <BookingCard
                   key={booking.id}
-                >
-
-                  {/* =================================================
-                      CARD HEADER
-                  ================================================= */}
-                  <div className="booking-card-header">
-
-                    <div className="booking-title-area">
-
-                      <div className="booking-number">
-                        #{booking.id}
-                      </div>
-
-                      <div>
-
-                        <h3>
-                          {booking.title ||
-                            "ไม่มีหัวข้อ"}
-                        </h3>
-
-                        <span className="booking-room">
-                          {booking.room_code ||
-                            "-"}
-                          {" · "}
-                          {booking.room_name ||
-                            "-"}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-
-                    {/* STATUS */}
-                    <span
-                      className={`booking-status ${status.className}`}
-                    >
-                      <span>
-                        {status.icon}
-                      </span>
-
-                      {status.text}
-                    </span>
-
-                  </div>
-
-
-                  {/* =================================================
-                      INFO
-                  ================================================= */}
-                  <div className="booking-card-info">
-
-                    {/* ผู้จอง */}
-                    <div className="booking-info-item">
-
-                      <small>
-                        ผู้จอง
-                      </small>
-
-                      <strong>
-                        {booking.booking_name ||
-                          "-"}
-                      </strong>
-
-                    </div>
-
-
-                    {/* วันที่ */}
-                    <div className="booking-info-item">
-
-                      <small>
-                        วันที่
-                      </small>
-
-                      <strong>
-
-                        {formatDate(
-                          booking.start_date
-                        )}
-
-                        {isMultiDay &&
-                          ` - ${formatDate(
-                            booking.end_date
-                          )}`}
-
-                      </strong>
-
-                    </div>
-
-
-                    {/* เวลา */}
-                    <div className="booking-info-item">
-
-                      <small>
-                        เวลา
-                      </small>
-
-                      <strong>
-
-                        {booking.start_time
-                          ? booking.start_time.slice(
-                              0,
-                              5
-                            )
-                          : "-"}
-
-                        {" - "}
-
-                        {booking.end_time
-                          ? booking.end_time.slice(
-                              0,
-                              5
-                            )
-                          : "-"}
-
-                      </strong>
-
-                    </div>
-
-
-                    {/* ผู้เข้าร่วม */}
-                    <div className="booking-info-item">
-
-                      <small>
-                        ผู้เข้าร่วม
-                      </small>
-
-                      <strong>
-
-                        {booking.participants ??
-                          0}
-                        {" คน"}
-
-                      </strong>
-
-                    </div>
-
-
-                    {/* วัตถุประสงค์ */}
-                    <div className="booking-info-item">
-
-                      <small>
-                        วัตถุประสงค์
-                      </small>
-
-                      <strong>
-                        {getPurpose(
-                          booking.purpose
-                        )}
-                      </strong>
-
-                    </div>
-
-                  </div>
-
-
-                  {/* =================================================
-                      EXTRA
-                  ================================================= */}
-                  {(booking.equipment ||
-                    booking.note) && (
-
-                    <div className="booking-extra-wrapper">
-
-                      {booking.equipment && (
-                        <div className="booking-extra">
-
-                          <strong>
-                            อุปกรณ์
-                          </strong>
-
-                          <span>
-                            {booking.equipment}
-                          </span>
-
-                        </div>
-                      )}
-
-
-                      {booking.note && (
-                        <div className="booking-extra">
-
-                          <strong>
-                            หมายเหตุ
-                          </strong>
-
-                          <span>
-                            {booking.note}
-                          </span>
-
-                        </div>
-                      )}
-
-                    </div>
-                  )}
-
-
-                  {/* =================================================
-                      ADMIN ACTION
-                  ================================================= */}
-                  {booking.status ===
-                    "pending" && (
-
-                    <div className="admin-booking-actions">
-
-                      <button
-                        type="button"
-                        className="approve-button"
-                        disabled={
-                          updatingId ===
-                          booking.id
-                        }
-                        onClick={() =>
-                          updateStatus(
-                            booking.id,
-                            "approved"
-                          )
-                        }
-                      >
-                        {updatingId ===
-                        booking.id
-                          ? "กำลังดำเนินการ..."
-                          : "✓ อนุมัติ"}
-                      </button>
-
-
-                      <button
-                        type="button"
-                        className="reject-button"
-                        disabled={
-                          updatingId ===
-                          booking.id
-                        }
-                        onClick={() =>
-                          updateStatus(
-                            booking.id,
-                            "rejected"
-                          )
-                        }
-                      >
-                        {updatingId ===
-                        booking.id
-                          ? "กำลังดำเนินการ..."
-                          : "✕ ไม่อนุมัติ"}
-                      </button>
-
-                    </div>
-                  )}
-
-
-                  {/* =================================================
-                      FOOTER
-                  ================================================= */}
-                  <div className="booking-card-footer">
-
-                    <span>
-                      สร้างรายการเมื่อ{" "}
-                      {booking.created_at
-                        ? new Date(
-                            booking.created_at
-                          ).toLocaleDateString(
-                            "th-TH"
-                          )
-                        : "-"}
-                    </span>
-
-                    <span>
-                      Booking #{booking.id}
-                    </span>
-
-                  </div>
-
-                </div>
-              );
-            }
-          )}
-
-        </div>
-      )}
-
+                  booking={booking}
+                  updating={
+                    updatingId ===
+                    booking.id
+                  }
+                  onUpdateStatus={
+                    updateStatus
+                  }
+                />
+
+              )
+            )}
+
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
