@@ -365,17 +365,7 @@ ${startTime} - ${endTime} น.
   <strong>อุปกรณ์ที่ต้องการ:</strong>
   ${equipment || "-"}
 </p>
-        <p>
-          <strong>สถานะ:</strong>
-          <span style="
-            color: orange;
-            font-weight: bold;
-          ">
-            รออนุมัติ
-          </span>
-        </p>
-
-        <hr>
+      
 
         <p>
           กรุณารอผู้ดูแลระบบตรวจสอบรายการจอง
